@@ -1,0 +1,9 @@
+module orgate(cout, a, b);
+
+input [63:0]a;
+input [63:0]b;
+output [63:0]cout;
+
+assign cout = a || b;
+
+endmodule
