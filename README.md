@@ -1,1 +1,1 @@
-ARM Processor made for Rowan Computer architecture class taught by Linda Head.
+ARM Processor made for Rowan University Computer architecture class taught by Linda Head.
