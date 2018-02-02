@@ -1,9 +1,0 @@
-module inverter(cout, a);
-
-	input  [63:0]a;
-	output [63:0]cout;
-	
-	assign c=~a;
-
-endmodule
-	
