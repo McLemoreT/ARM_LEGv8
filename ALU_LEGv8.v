@@ -33,7 +33,7 @@ module ALU_LEGv8(A, B, FS, C0, F, status);
 		
 		endmodule
 		
-module adder(A, B, C_in, S, C_out);
+module Adder(A, B, C_in, S, C_out);
 			input [63:0]A, B;
 			
 			input C_in;
