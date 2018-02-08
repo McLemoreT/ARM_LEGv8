@@ -11,8 +11,8 @@ module ALU_LEGv8(A, B, FS, C0, F, status);
 		
 		wire [63:0] A_signal, B_signal;
 		
-		assign A_signal = FS[0] ? ~A:A;
-		assign B_signal = FS[1] ? ~B:B;
+	assign A_signal = FS[0] ? ~A:A; //mux selecting between A or ~A
+	assign B_signal = FS[1] ? ~B:B; //...B or ~B
 		
 		wire Z, N, C, V;
 		assign status = {V, C, N, Z};
