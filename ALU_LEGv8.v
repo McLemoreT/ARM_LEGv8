@@ -25,7 +25,8 @@ module ALU_LEGv8(A, B, FS, C0, F, status);
 		assign and_out = A_signal & B_signal;
 		assign or_out = A_signal | B_signal;
 		assign xor_out = A_signal ^ B_signal;
-		Adder adder_inst(A_signal, B_signal, C0, add_out, C);
+		CLA_64bit adder_inst(add_out, C, A_signal, B_signal, C0);
+		//Adder adder_inst(A_signal, B_signal, C0, add_out, C);
 		
 		Shifter shift_inst(A, B[5:0], shift_left, shift_right);
 		
