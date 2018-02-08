@@ -17,9 +17,9 @@ module RegFileTestbench();
 		SA <= 5'd31;
 		SB <= 5'd30;
 		W <= 1'b1;
-		D <= 64'h0123456789ABCDEF;
-		#4 reset <= 1'b0;
-		#320 W <= 1'b0;
+		D <= 64'h0123456789ABCDEF; //randon arbitrary inital value
+		#4 reset <= 1'b0; //after 4 processor clocks, reset to 0
+		#320 W <= 1'b0; //after 320 processor clocks, turn off write
 		#320 $stop;
 	end
 	
@@ -28,8 +28,8 @@ module RegFileTestbench();
 	end
 	
 	always begin
-		#10 DA <= DA + 1'b1;
-		SA <= SA + 1'b1;
+		#10 DA <= DA + 1'b1; //every 10 ticks, the data address changes to next register
+		SA <= SA + 1'b1; //increment select bits
 		SB <= SB + 1'b1;
 		D <= {$random, $random};
 	end
