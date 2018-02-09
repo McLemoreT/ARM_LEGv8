@@ -1,6 +1,6 @@
 module CLA_4bit(
     output [3:0] S,
-    output PG,GG,
+    output Cout,
     input [3:0] A,B,
     input Cin
     );
