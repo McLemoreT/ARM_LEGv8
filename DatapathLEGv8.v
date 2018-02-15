@@ -23,8 +23,8 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	
 	//RAM256x64sim data_mem (ALU_output, clock, RegBbus, MemWrite, MEM_output);
 	//RAM256x64m9k data_mem (ALU_output, clock, RegBbus, MemWrite, MEM_output);
-	//RAM256x64 data_mem (ALU_output, clock, RegBbus, MemWrite, MEM_output);
-	//RAM256x64 data_mem (ALU_output, clock, RegBbus, MemWrite, MEM_output);
+	RAM256x64 data_mem (ALU_output, clock, RegBbus, MemWrite, MEM_output);
+	
 	
 	//defparam data_mem.memory_words = 7000;
 	
