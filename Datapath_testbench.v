@@ -30,17 +30,17 @@ reg [63:0] D, DA, W;
 		//ControlWord <= 25'b0000100010000001000000000;
 		#5 reset <= 0;
 		#15 constant <= 64'd4;
-		ControlWord <= 25'b1111100000001011001000001;
+		ControlWord <= 25'b1111100000001011001000101;
 		#18 D <= 64'd6;	//perform preconditoin of laoding 6 into R2
 		W <= 1;
 		DA <= 5'd2;
 		#1 D <= 64'd35;	//loading 35 into R0
 		DA <= 5'd0;
-		#1 ControlWord <= 25'b0001000000001011001000101;
-		#20 ControlWord <= 25'b0111101100111101001001101;
+		#1 ControlWord <= 25'b0001000000001011001000001;
+		#20 ControlWord <= 25'b0111101100111101001001001;
 		#20 constant <= 64'b0;
-		ControlWord <= 25'b0000100010000000101000010;
-		#20 ControlWord <= 25'b1011000000111001001000010;
+		ControlWord <= 25'b0000100010000000101000110;
+		#20 ControlWord <= 25'b1011000000111001001000110;
 		//#20 ControlWord <= 25'b0000000000000000000000000;
 	end
 	
