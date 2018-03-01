@@ -1,24 +1,30 @@
 module Datapath_testbench (); 
 			
+
 wire [63:0] R5, R2, R0, R30, R15, R12, R1, R28, R22;
+
 wire [63:0] data;
 reg [63:0] constant;
 reg [24:0] ControlWord;
 reg clock, reset;
 wire [3:0] status;
+
 wire [63:0] M5, M200;
+
 
 	initial begin
 		constant <= 64'd0;
 		ControlWord <= 25'b0;
 		reset <= 1;
 		clock <= 0;
+
 		#165 $stop; //then stop
 	end
 //Control word is defined as: {SA, SB, DA, RegWrite, MemWrite, FS, Bsel, EN_Mem, EN_ALU} = ControlWord;
 	always begin
 		#5 reset <= 0;
 		#5 constant <= 64'd4;
+
 		ControlWord <= 25'b1111100000001011001000101;//loading 4 into R5
 		
 		#10 constant <= 64'd6;
@@ -32,6 +38,7 @@ wire [63:0] M5, M200;
 		ControlWord <= 25'b1111100000011111001000101; // loading 34 into R15
 		#10 constant <= 64'd30;
 		ControlWord <= 25'b1111100000011001001000101; // loading 30 into R12
+
 		#10 ControlWord <= 25'b0111101100111101001010001; //subtracting R15-R12, goes to R30
 		//------------------------------------
 
@@ -50,6 +57,7 @@ wire [63:0] M5, M200;
 		ControlWord <= 25'b1011000000000000101000110; //M200 gets 18 (18 was stored in R28)
 		#10 ControlWord <= 25'b1011000000111001001000110; //R28 get value 18 which is stored in M200
 		#20 reset <= 1;
+
 	end
 	
 	always begin
@@ -57,7 +65,7 @@ wire [63:0] M5, M200;
 	end
 	
 	DatapathLEGv8 dut (ControlWord, status, constant, data, clock, reset);	
-
+  
 	//viewing the necessary register locations in Modelsim
 	assign R0 = dut.regfile.R00;	
 	assign R1 = dut.regfile.R01;	
@@ -72,5 +80,6 @@ wire [63:0] M5, M200;
 	//viewing the necessary memory locations in Modelsim
 	assign M5 = dut.data_mem.mem[5];
 	assign M200 = dut.data_mem.mem[200];
+
 
 endmodule
