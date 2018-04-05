@@ -25,7 +25,7 @@ module ALU_LEGv8(A, B, FS, C0, F, status);
 		assign and_out = A_signal & B_signal;
 		assign or_out = A_signal | B_signal;
 		assign xor_out = A_signal ^ B_signal;
-		Adder adder_inst(A_signal, B_signal, C0, add_out, C);
+	Adder adder_inst(A_signal, B_signal, FS[1], add_out, C);	//FS[1] is Binvert. When subtracting, Binvert is 1, so we add one to take full 2's compliment
 		
 		Shifter shift_inst(A, B[5:0], shift_left, shift_right);
 		
