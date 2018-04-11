@@ -79,14 +79,60 @@ module I_arithmetic_decoder (I, control_word);
 	input [31:0]I;
 	output [CW_BITS-1:0] control_word;
 	
+	   //wire all control signals - put into all of this small modules
+    wire [4:0] DA, SA, SB;    
+    wire [63:0] K;
+    wire [1:0] PS;
+    wire [4:0] FS;
+    wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
+    
+    //specific to this module:
+    wire Z, N, C, V;
+    
+    assign {V, C, N, Z} = status;
+    assign DA = I[4:0];    //Rt
+    assign SA = I[9:5];//Rn
+    assign SB = 5'b0;
+    assign K = {52{I[21]}, I[21:10]};    //the 45 of the MSBs of I sign extends K to 64 bits
+   always @(*) begin
+       case(I[30])
+           1'b0: FS = 5'b00010;
+           1'b1: FS = 5'b01010;
+	
 	
 	
 endmodule
 
-module I_logic_decoder (I, control_word);
-	input [31:0]I;
+module I_logic_decoder (I, control_word); //Minor problems
+	input [31:0]I; 
 	output [CW_BITS-1:0] control_word;
 	
+	wire [4:0] DA, SA, SB;    
+    wire [63:0] K;
+    wire [1:0] PS;
+    wire [4:0] FS;
+    wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
+	
+	assign {V, C, N, Z} = status;
+	assign DA = I[4:0];
+	assign SA = I[9:5];
+	assign SB = 5'b0;
+	assign K = {52{I[21],I[21:10]};
+	always @(*) begin
+	case(I[30:29])//31 down 30? PAdding at begining or end?
+		2'b00:	FS = 5'b00000;
+		2'b01:	FS = 5'b00100;
+		2'b10:	FS = 5'b01100;
+		2'b11:	FS = 5'b00000;
+	assign PCsel = 1'b1; //Don't know what Kin does.
+	assign Bsel = 1'b1;
+	assign SL = I[30] & I[29];
+	assign EN_ALU = 1'b1;
+	assign EN_RAM = 1'b0;
+	assign EN_PC = 1'b1;
+	assign WM = 1'b0;
+	assign WR = 1'b1;
+	assign NS = 1'b0; //I don't even know what this is
 endmodule
 
 module IW_decoder (I, state, control_word);
@@ -136,11 +182,34 @@ module R_ALU_decoder (I, control_word);
 	wire [4:0] FS;
 	wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
 	
+	assign {V, C, N, Z} = status;
+	assign DA = I[4:0];
+	assign SA = I[9:5];
+	assign SB = I[20:16];
+	assign K = 1'b0;
+	assign FS[0] = I[24] & ~I[22] & I[30];
+	assign FS[1] = 1'b0;
+	assign FS[2] = ~I[24] & (I[30] ^ I[29]) | I[24] & I[22] & ~I[21];
+	assign FS[3] = ~I[24] & I[30] & ~I[29] | I[24] & ~I[22];
+	assign FS[4] = I[24] & I[22];
+	
+	assign PCsel = 1'b1; //Don't know what Kin does. // Still don't understand why this is 1, 4/10/2018 Tuesday 8:51PM EST 08028 Glassboro NJ USA North America Earth SOL Milky Way 
+	assign Bsel = 1'b0;
+	assign SL = ~I[24] & I[30] & I[29] | I[24] & ~I[22] & I[29];
+	assign EN_ALU = 1'b1;
+	assign EN_RAM = 1'b0;
+	assign EN_PC = 1'b1;
+	assign WM = 1'b0;
+	assign WR = 1'b1;
+	assign NS = 1'b0;
+	
 endmodule
 
-module B_decoder (I, control_word);
+module B_decoder (I, control_word); // DOn't understand how PC works. Can't really solve this one given all the unknowns.
+//Possibly only arithmetic 
 	input [31:0]I;
 	output [CW_BITS-1:0] control_word;
+
 	
 endmodule
 
@@ -148,14 +217,7 @@ module B_cond_decoder (I, status, control_word);
 	input [31:0]I;
 	input [3:0]status;
 	output [CW_BITS:0] control_word;
-	
-endmodule
-
-module BL_decoder (IR, control_word);
-	input [31:0]IR;
-	output [CW_BITS-1:0] control_word;
-	
-	//wire all control signals 03/28/2018
+		//wire all control signals 03/28/2018
 	wire[4:0] DA, SA, SB;
 	wire[63:0] K;
 	wire [1:0] PS;
@@ -193,17 +255,49 @@ module BL_decoder (IR, control_word);
 	wire PCmux_out;
 	wire Zn_C, N_xor_V, N_xor_V_Zn;
 	assign Zn_C = ~Z & C;
-	assign N_xor_V = ~(N^V);
-	assign N_xor_V_Zn = N_xor_V & ~Z;
-	mux8to1Nbit PC|mux (PCmux_out, I[3:1], Z, C, N, V, Zn_C, N_xor_V, N_xor_V_Zn, ~I[0]);
-	def param PC|mux.N = 1; //Possible mistake
+	assign N_xnor_V = ~(N^V);
+	assign N_xnor_V_Zn = N_xor_V & ~Z;
+	mux8to1Nbit PC1mux (PCmux_out, I[3:1], Z, C, N, V, Zn_C, N_xnor_V, N_xnor_V_Zn, ~I[0]);
+	def param PC1mux.N = 1; 
 	assign PS[1] = PCmux_out ^ I[0];
 	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU,PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA};
+	
+endmodule
+
+module BL_decoder (IR, control_word);
+	input [31:0]IR;
+	output [CW_BITS-1:0] control_word;
+	
+
+
 endmodule
 
 module CBZ_decoder (IR, control_word);
 	input [31:0]IR;
 	output [CW_BITS-1:0] control_word;
+	
+	wire [4:0] DA, SA, SB;    
+    wire [63:0] K;
+    wire [1:0] PS;
+    wire [4:0] FS;
+    wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
+	
+	assign {V, C, N, Z} = status;
+	assign DA = I[4:0];
+	assign SA = 5'b0;
+	assign SB = 5'b0;
+	assign K = {45{I[23],I[23:5]};
+	assign PS = 2'b11;
+	assign FS = 5'b0;
+	assign PCsel = 1'b1; //Don't know what Kin does.
+	assign Bsel = 1'b1;//Maybe not depending on PCsel
+	assign SL = 1'b0;
+	assign EN_ALU = 1'b00;
+	assign EN_RAM = 1'b0;
+	assign EN_PC = 1'b1;
+	assign WM = 1'b0;
+	assign WR = 1'b0;
+	assign NS = 1'b0;
 	
 endmodule
 
