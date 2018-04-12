@@ -1,11 +1,14 @@
 module ProgramCounter(PC, PC4, in, PS, clock, reset);
 	input [63:0]in;
 	input [1:0]PS; // Program counter function Select bits
-	// PS
-	// 00 - PC <= PC
-	// 01 - PC <= PC+4
-	// 10 - PC <= in
-	// 11 - PC <= PC+4+in*4
+/*
+	PS |
+	---+----------------
+	00 | PC <- PC
+	01 | PC <- PC + 4
+	10 | PC <- in
+	11 | PC <- PC + 4 +in*4
+	*/
 	input clock, reset;
 	output [63:0]PC;
 	output [63:0]PC4;
