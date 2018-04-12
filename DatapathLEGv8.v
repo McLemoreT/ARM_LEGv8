@@ -1,28 +1,34 @@
-module DatapathLEGv8 (ControlWord, status, constant, data, clock, reset);
-	input [34:0] ControlWord;
-	input [63:0] constant; 
+module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
+	input [24:0] ControlWord;
+	input [63:0] constant;
 	inout [63:0] data;
 	input clock, reset;
 	output [3:0] status;
 	
-	wire [4:0] SA, SB, DA; //selectA, selectB, and data address
+	wire [4:0] SA, SB, DA;
 	wire RegWrite, MemWrite;
-	wire [63:0] RegAbus, RegBbus;
-	wire [4:0] FS; //funciton select
-	wire C0;
+	wire [63:0] RegAbus, RegBbus, B;
+	wire [4:0] FS;
 	wire [63:0] ALU_output, MEM_output;
 	wire EN_Mem, EN_ALU;
+	wire Bsel;
 	
-	assign {SA, SB, DA, RegWrite, MemWrite, FS, C0, EN_Mem, EN_ALU} = ControlWord; //control word consists of these values
+	assign {SA, SB, DA, RegWrite, MemWrite, FS, Bsel, EN_Mem, EN_ALU} = ControlWord;
 	
-	RegFile32x64 regfile (RegAbus, RegBbus, data, DA, SA, SB, RegWrite, reset, clock); //Head's order of these values was different, but I changed the order to match or RegFile
+	RegFile32x64 regfile(RegAbus, B, data, DA, SA, SB, RegWrite, reset, clock);
 	
-	ALU_LEGv8 alu (RegAbus, RegBbus, FS, C0, ALU_output, status); //in our ALU module, we had CO, not C0
+	assign RegBbus = Bsel ? constant : B;
 	
-	RAM256x64 data_mem (ALU_output, clock, RegBbus, MemWrite, MEM_output);
+	ALU_LEGv8 alu (RegAbus, RegBbus, FS, FS[0], ALU_output, status);
 	
-	assign data = EN_Mem ? MEM_output : 64'bz; //tristate buffers. Outbut is data.
-	assign data = EN_ALU ? ALU_output : 64'bz; //If EN_ALU is 1, data gets ALU_output. If EN_ALU is 0, data gets 64 bit high impedance.
+	//RAM256x64sim data_mem (ALU_output, clock, RegBbus, MemWrite, MEM_output);
+	//RAM256x64m9k data_mem (ALU_output, clock, RegBbus, MemWrite, MEM_output);
+	RAM256x64 data_mem (ALU_output, ~clock, RegBbus, MemWrite, MEM_output);
 	
+	
+	//defparam data_mem.memory_words = 7000;
+	
+	assign data = EN_Mem ? MEM_output : 64'bz;
+	assign data = EN_ALU ? ALU_output : 64'bz;
 	
 endmodule
