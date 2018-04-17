@@ -1,12 +1,12 @@
 `define CW_BITS 94
 
-module control_unit_setup(instruction, status, reset, clock, control_word, literal);
+module control_unit_setup(instruction, status, reset, clock, control_word, K);
 	input [31:0] instruction;
 							  // registerd   , instant
 	input [4:0] status; // {V, C, N, Z}, Z
 	input reset, clock;
 	output [`CW_BITS-1:0] control_word;
-	output [63:0] literal;
+	output [63:0] K;
 	
 	wire [10:0] opcode;
 	assign opcode = instruction[31:21];
