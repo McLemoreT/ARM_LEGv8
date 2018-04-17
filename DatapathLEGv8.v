@@ -40,4 +40,10 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	assign data = EN_Mem ? MEM_output : 64'bz;
 	assign data = EN_ALU ? ALU_output : 64'bz;
 	
+	ProgramCounter PC (PC, PC4, in, PS, clock, reset);
+    
+    	rom_case ROM (instruction, address);
+    
+    	control_unit_setup c1 (instruction, status, reset, clock, control_word, literal)
+	
 endmodule
