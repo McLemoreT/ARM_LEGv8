@@ -14,9 +14,9 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	wire Bsel;
 	wire [3:0] ALU_Status;
 	
-	assign {SA, SB, DA, RegWrite, MemWrite, FS, Bsel, EN_Mem, EN_ALU} = ControlWord;
-	
-	RegFile32x64 regfile(RegAbus, B, data, DA, SA, SB, RegWrite, reset, clock);
+	assign {constant, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA} = [92:0]ControlWord; //we have the control word, pull all these things off of it in the correct order
+													    //Removed NS so CW went from 94 bits to 93
+	RegFile32x64 regfile(A, B, data, DA, SA, SB, RegWrite, reset, clock);
 	
 	assign RegAbus = PCsel ? constant : A;
 	assign RegBbus = Bsel ? constant : B;
