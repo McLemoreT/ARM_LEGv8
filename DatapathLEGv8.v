@@ -18,6 +18,7 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	
 	RegFile32x64 regfile(RegAbus, B, data, DA, SA, SB, RegWrite, reset, clock);
 	
+	assign RegAbus = PCsel ? constant : A;
 	assign RegBbus = Bsel ? constant : B;
 	
 	ALU_LEGv8 alu (RegAbus, RegBbus, FS, FS[0], ALU_output, ALU_Status);
@@ -45,5 +46,6 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
     	rom_case ROM (instruction, address);
     
 	control_unit_setup c1 (instruction, status, reset, clock, control_word, K)
+
 	
 endmodule
