@@ -45,7 +45,7 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
     
     	rom_case ROM (instruction, address);
     
-	control_unit_setup c1 (instruction, status, reset, clock, control_word, K)
+	control_unit_setup c1 (instruction, status, reset, clock, control_word, constant)
 
 	
 endmodule
