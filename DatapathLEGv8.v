@@ -6,7 +6,6 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	output [4:0] status;
 	
 	wire [4:0] SA, SB, DA;
-	wire RegWrite, MemWrite;
 	wire [63:0] RegAbus, RegBbus, B;
 	wire [4:0] FS;
 	wire [63:0] ALU_output, MEM_output;
@@ -14,15 +13,14 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	wire Bsel;
 	wire [3:0] ALU_Status;
 	wire [1:0] PS;
-	wire EN_PC; 
+	wire EN_PC, SL, WM, WR; 
 	
 	assign {constant, EN_PC, EN_Mem, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA} = ControlWord [92:0]; //we have the control word, pull all these things off of it in the correct order
 													    //Removed NS so CW went from 94 bits to 93
-		wire SL;
-		wire WM, WR;
+
 	assign data = (EN_PC) ? PC4 : 1'bz;
 		
-	RegFile32x64 regfile(A, B, data, DA, SA, SB, RegWrite, reset, clock);
+	RegFile32x64 regfile(A, B, data, DA, SA, SB, WR, reset, clock);
 	
 	assign RegAbus = PCsel ? constant : A;
 	assign RegBbus = Bsel ? constant : B;
@@ -40,7 +38,7 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	
 	//RAM256x64 data_mem (ALU_output, ~clock, RegBbus, MemWrite, MEM_output); 
 		//clock is inverted so ALU operations happen before reading values. Gives time for fan-in time
-	RAM256x64 data_mem (ALU_output, ~clock, B, MemWrite, MEM_output);
+	RAM256x64 data_mem (ALU_output, ~clock, B, WM, MEM_output);
 
 	//defparam data_mem.memory_words = 7000;
 	
