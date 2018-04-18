@@ -48,7 +48,7 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	ProgramCounter PC (address, PC4, in, PS, clock, reset);
 	wire [63:0]address;
 	
-	rom_case ROM (instruction, address);
+	rom_case ROM (instruction, address[17:2]);
     
 	control_unit_setup c1 (instruction, status, reset, clock, control_word, constant)
 
