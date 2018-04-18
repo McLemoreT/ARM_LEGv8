@@ -30,7 +30,7 @@ module ALU_LEGv8(A, B, FS, C0, F, status);
 		//Adder adder_inst(A_signal, B_signal, C0, add_out, C);
     //In the case of catastrophic CLA problems, restore the line above
 		
-		Shifter shift_inst(A, B[5:0], shift_left, shift_right);
+		shifter shift_inst(A, B[5:0], shift_left, shift_right);
 		
 		Mux8to1Nbit main_mux(F, FS[4:2], and_out, or_out, add_out, xor_out, shift_left, shift_right, 64'b0, 64'b0);
 		
