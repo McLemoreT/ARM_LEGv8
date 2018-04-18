@@ -25,7 +25,7 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	assign RegAbus = PCsel ? constant : A;
 	assign RegBbus = Bsel ? constant : B;
 	
-	ALU_LEGv8 alu (RegAbus, RegBbus, FS, FS[0], ALU_output, ALU_Status);
+	ALU_LEGv8 alu (A, RegBbus, FS, FS[0], ALU_output, ALU_Status);
 	
 	RegisterNbit statusReg (status[4:1], ALU_Status, SL, reset, clock); //SL is part of control work. need to figure out how to get that here
 	defparam statusReg.N = 4;
