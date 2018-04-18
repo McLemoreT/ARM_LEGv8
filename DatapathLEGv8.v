@@ -45,7 +45,7 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	assign data = EN_Mem ? MEM_output : 64'bz;
 	assign data = EN_ALU ? ALU_output : 64'bz;
 	
-	ProgramCounter PC (address, PC4, in, PS, clock, reset);
+	ProgramCounter PC (address, PC4, RegAbus, PS, clock, reset);
 	wire [63:0]address;
 	
 	rom_case ROM (instruction, address[17:2]);
