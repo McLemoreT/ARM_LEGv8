@@ -26,7 +26,7 @@ module ALU_LEGv8(A, B, FS, C0, F, status);
 		assign or_out = A_signal | B_signal;
 		assign xor_out = A_signal ^ B_signal;
 
-		CLA_64bit adder_inst(add_ out, C, A_signal, B_signal, C0);
+	CLA_64bit adder_inst(add_\out, C, A_signal, B_signal, C0);
 		//Adder adder_inst(A_signal, B_signal, C0, add_out, C);
     //In the case of catastrophic CLA problems, restore the line above
 		
