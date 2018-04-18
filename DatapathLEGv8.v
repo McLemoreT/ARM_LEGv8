@@ -15,7 +15,7 @@ module DatapathLEGv8(ControlWord, status, constant, data, clock, reset);
 	wire [1:0] PS;
 	wire EN_PC, SL, WM, WR; 
 	
-	assign {constant, EN_PC, EN_Mem, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA} = ControlWord [92:0]; //we have the control word, pull all these things off of it in the correct order
+	assign {EN_PC, EN_Mem, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA} = ControlWord [28:0]; //we have the control word, pull all these things off of it in the correct order
 													    //Removed NS so CW went from 94 bits to 93
 
 	assign data = (EN_PC) ? PC4 : 1'bz;
