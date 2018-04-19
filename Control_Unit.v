@@ -62,7 +62,7 @@ module D_decoder (I, control_word);
 	assign DA = I[4:0];
 	assign SA = I[9:5];
 	assign SB = I[4:0]; //"I think" Matt
-	assign K = {52'b0, I[21:12]};
+	assign K = {55'b0, I[20:12]};
 	assign FS = 5'b01000;
 	assign PCsel = 1'b0; //Kin
 	assign Bsel = 1'b1;
