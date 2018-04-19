@@ -4,6 +4,7 @@ module DatapathLEGv8(ControlWord, status, data, clock, reset);
 	input clock, reset;
 	output [4:0] status;
 	
+	wire EN_B;	
 	wire [63:0] PC4;
 	wire [63:0] Constant;
 	wire [4:0] SA, SB, DA;
@@ -25,6 +26,7 @@ module DatapathLEGv8(ControlWord, status, data, clock, reset);
 	
 	assign RegAbus = PCsel ? constant : A;
 	assign RegBbus = Bsel ? constant : B;
+	assign data = EN_B ? Bsel : 64'bz;
 	
 	ALU_LEGv8 alu (A, RegBbus, FS, FS[0], ALU_output, ALU_Status);
 	
