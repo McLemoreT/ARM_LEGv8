@@ -4,9 +4,10 @@ module DatapathLEGv8(ControlWord, status, data, clock, reset);
 	input clock, reset;
 	output [4:0] status;
 	
+	wire [63:0]address;
 	wire EN_B;	
 	wire [63:0] PC4;
-	wire [63:0] Constant;
+	wire [63:0] constant;
 	wire [4:0] SA, SB, DA;
 	wire [63:0] RegAbus, RegBbus, B;
 	wire [4:0] FS;
@@ -49,7 +50,7 @@ module DatapathLEGv8(ControlWord, status, data, clock, reset);
 	assign data = EN_ALU ? ALU_output : 64'bz;
 	
 	ProgramCounter PC (address, PC4, RegAbus, PS, clock, reset);
-	wire [63:0]address;
+	
 	
 	rom_case ROM (instruction, address[17:2]);
     
