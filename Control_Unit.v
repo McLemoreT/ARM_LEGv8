@@ -1,4 +1,4 @@
-`define CW_BITS 94
+`define CW_BITS 96
 
 module control_unit_setup(instruction, status, reset, clock, control_word, K);
 	input [31:0] instruction;
