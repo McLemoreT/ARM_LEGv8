@@ -26,7 +26,7 @@ module ProgramCounter(PC, PC4, in, PS, clock, reset);
 endmodule
 
 module Mux4to1nbit (F, S, I00, I01, I02, I03);
-Parameter N = 4;
+parameter N = 4;
 input [1:0] S;
 input [N-1:0] I00, I01, I02, I03;
 output reg [N-1:0] F;
