@@ -1,5 +1,5 @@
 module DatapathLEGv8(ControlWord, status, data, clock, reset);
-	input [93:0] ControlWord;
+	input [96:0] ControlWord;
 	inout [63:0] data;
 	input clock, reset;
 	output [4:0] status;
