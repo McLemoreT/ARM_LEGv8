@@ -1,4 +1,4 @@
-module Mux4to1nbit (F, S, I00, I01, I02, I03)
+module Mux4to1nbit (F, S, I00, I01, I02, I03);
 Parameter N = 4;
 input [1:0] S;
 input [n-1:0] I00, I01, I02, I03;
