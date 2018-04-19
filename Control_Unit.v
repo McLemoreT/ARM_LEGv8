@@ -8,6 +8,7 @@ module control_unit_setup(instruction, status, reset, clock, control_word, K);
 	output [`CW_BITS-1:0] control_word;
 	output [63:0] K;
 	
+	wire V, C, N, Z, ZZ;
 	wire [10:0] opcode;
 	assign opcode = instruction[31:21];
 	
@@ -34,7 +35,7 @@ module control_unit_setup(instruction, status, reset, clock, control_word, K);
 	R_ALU_decoder dec0_110 (instruction, R_ALU_cw);
 	B_decoder dec1_000 (instruction, B_cw);
 	B_cond_decoder dec1_010 (instruction, status[4:1], B_cond_cw);
-	BL_decoder dec1_100 (instruction, BL_cw);
+	BL_decoder dec1_100 (instruction, BL_cw, state);
 	CBZ_decoder dec1_101 (instruction, status, CBZ_cw);
 	BR_decoder dec1_110 (instruction, BR_cw);
 	
@@ -59,55 +60,48 @@ module D_decoder (I, control_word);
 	
 //	assign {V, C, N, Z} = status;
 	assign DA = I[4:0];
-	assign SA = I[10:5];
-	assign SB = 5'b0;
-	assign K = {45{I[23],I[23:5]}};
-	assign FS = 5'b0;
+	assign SA = I[9:5];
+	assign SB = I[4:0]; //"I think" Matt
+	assign K = {52'b0, I[21:12]};
+	assign FS = 5'b01000;
 	assign PCsel = 1'b0; //Kin
-	assign Bsel = 1'b0;
+	assign Bsel = 1'b1;
 	assign SL = 1'b0;
+	assign EN_RAM = I[22];
+	assign EN_PC = 1'b0;		//This might be wrong
+	assign EN_B = ~I[22];
 	assign EN_ALU = 1'b0;
-	assign EN_RAM = 1'b1;
-	assign EN_PC = 1'b1;		//This might be wrong
 	assign WM = ~I[22];
 	assign WR =  I[22];
 	assign NS = 1'b0;
-	
+	assign PS = 2'b01;
+
+	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 endmodule
 
 module I_arithmetic_decoder (I, control_word);
 	input [31:0]I;
 	output [`CW_BITS-1:0] control_word;
 	
-	   //wire all control signals - put into all of this small modules
-    wire [4:0] DA, SA, SB;    
-    wire [63:0] K;
-    wire [1:0] PS;
-    wire [4:0] FS;
-    wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
-    
-    //specific to this module:
-    wire Z, N, C, V;
-    
- //   assign {V, C, N, Z} = status;
-    assign DA = I[4:0];    //Rt
-    assign SA = I[9:5];//Rn
-    assign SB = 5'b0;
-    assign K = {52{I[21], I[21:10]}};    //the 45 of the MSBs of I sign extends K to 64 bits
- /*  always @(*) begin
-       case(I[30])
-           1'b0: FS = 5'b00010;
-           1'b1: FS = 5'b01010;
-			 endcase
-	end*/
-	
-	assign FS = {1'b0, I[30], 3'b010};
-/*	FS[4] = 1'b0;
-	FS[3] = I[30];
-	FS[2:0] = 3'b010;*/
-	
-	
-	
+	assign DA = I[4:0];
+	assign SA = I[9:5];
+	assign SB = 5'b0; //"I think" Matt
+	assign K = {52'b0, I[21:10]};
+	assign FS = {3'b010, I[30], 1'b0};
+	assign PCsel = 1'b0; //Kin
+	assign Bsel = 1'b1;
+	assign SL = I[29];
+	assign EN_RAM = 1'b0;
+	assign EN_PC = 1'b0;		//This might be wrong
+	assign EN_B = 1'b0;
+	assign EN_ALU = 1'b1;
+	assign WM = 1'b0;
+	assign WR =  1'b1;
+	assign NS = 1'b0;
+	assign PS = 2'b01;
+
+	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+
 endmodule
 
 module I_logic_decoder (I, control_word); //Minor problems
@@ -120,31 +114,25 @@ module I_logic_decoder (I, control_word); //Minor problems
     wire [4:0] FS;
     wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
 	
-//	assign {V, C, N, Z} = status;
+
 	assign DA = I[4:0];
 	assign SA = I[9:5];
 	assign SB = 5'b0;
-	assign K = {52{I[21],I[21:10]}};
-/*	always @(*) begin
-	case(I[30:29])//31 down 30? PAdding at begining or end?
-		2'b00:	FS = 5'b00000;
-		2'b01:	FS = 5'b00100;
-		2'b10:	FS = 5'b01100;
-		2'b11:	FS = 5'b00000;
-		endcase
-		end */
-		
+	assign K = {52'b0, I[21:10]};		
 	assign FS = {1'b0, I[30] & ~I[29], I[30]^I[29], 2'b00};
-		
 	assign PCsel = 1'b1; //Don't know what Kin does.
 	assign Bsel = 1'b1;
 	assign SL = I[30] & I[29];
 	assign EN_ALU = 1'b1;
 	assign EN_RAM = 1'b0;
-	assign EN_PC = 1'b1;
+	assign EN_PC = 1'b0;
 	assign WM = 1'b0;
 	assign WR = 1'b1;
-	assign NS = 1'b0; //I don't even know what this is
+	assign NS = 1'b0;
+	assign EN_B = 1'b0;
+	assign PS = 2'b01;
+	
+	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 endmodule
 
 module IW_decoder (I, state, control_word);
@@ -170,6 +158,7 @@ module IW_decoder (I, state, control_word);
 	assign EN_PC = 1'b0;
 	assign WM = 1'b0;
 	assign WR = 1'b1;
+	assign EN_B = 1'b0;
 	
 	// hard ones
 	wire I29_Snot;
@@ -180,7 +169,8 @@ module IW_decoder (I, state, control_word);
 	assign FS = {2'b00, ~I29_Snot, 2'b00};
 	assign NS = I29_Snot;
 	
-	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA};
+	
+	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 endmodule
 
 module R_ALU_decoder (I, control_word);
@@ -198,27 +188,29 @@ module R_ALU_decoder (I, control_word);
 	assign DA = I[4:0];
 	assign SA = I[9:5];
 	assign SB = I[20:16];
-	assign K = 1'b0;
+	assign K = {58'b0, I[15:10]};
 	assign FS[0] = I[24] & ~I[22] & I[30];
 	assign FS[1] = 1'b0;
 	assign FS[2] = ~I[24] & (I[30] ^ I[29]) | I[24] & I[22] & ~I[21];
 	assign FS[3] = ~I[24] & I[30] & ~I[29] | I[24] & ~I[22];
 	assign FS[4] = I[24] & I[22];
 	
-	assign PCsel = 1'b1; //Don't know what Kin does. // Still don't understand why this is 1, 4/10/2018 Tuesday 8:51PM EST 08028 Glassboro NJ USA North America Earth SOL Milky Way 
-	assign Bsel = 1'b0;
+	assign PCsel = 1'b0; //Don't know what Kin does. // Still don't understand why this is 1, 4/10/2018 Tuesday 8:51PM EST 08028 Glassboro NJ USA North America Earth SOL Milky Way 
+	assign Bsel = I[22];
 	assign SL = ~I[24] & I[30] & I[29] | I[24] & ~I[22] & I[29];
 	assign EN_ALU = 1'b1;
 	assign EN_RAM = 1'b0;
-	assign EN_PC = 1'b1;
+	assign EN_PC = 1'b0;
 	assign WM = 1'b0;
 	assign WR = 1'b1;
 	assign NS = 1'b0;
+	assign EN_B = 1'b0;
+	assign PS = 2'b01;
 	
+	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 endmodule
 
-module B_decoder (I, control_word); // DOn't understand how PC works. Can't really solve this one given all the unknowns.
-//Possibly only arithmetic 
+module B_decoder (I, control_word);
 	input [31:0]I;
 	output [`CW_BITS-1:0] control_word;
 
@@ -233,20 +225,26 @@ module B_decoder (I, control_word); // DOn't understand how PC works. Can't real
    assign DA = 5'b0; // not used
    assign SA = 5'b0;
    assign SB = 5'b0; // not used
-   assign Bsel = 1'b1;
+	assign FS = 5'b0;
+   assign Bsel = 1'b0;
    assign PCsel = 1'b0;
    assign PS = 2'b11;
    assign SL = 1'b0;
-   assign EN_ALU = 1'b1;
+   assign EN_ALU = 1'b0;
    assign EN_RAM = 1'b0;
-   assign EN_PC = 1'b1;
+   assign EN_PC = 1'b0;
    assign WM = 1'b0;
-   assign WR = 1'b1;
+	assign WR = 1'b0;
+	assign EN_B = 1'b0;
+	assign NS = 1'b0;
+	assign K = {38'b0, I[25:0]};
+	
+	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 endmodule
 
 module B_cond_decoder (I, status, control_word);
 	input [31:0]I;
-	input [3:0]status;
+	input [4:0]status;
 	output [`CW_BITS:0] control_word;
 		//wire all control signals 03/28/2018
 	wire[4:0] DA, SA, SB;
@@ -254,8 +252,9 @@ module B_cond_decoder (I, status, control_word);
 	wire [1:0] PS;
 	wire [4:0] FS;
 	wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
+	wire V, C, N, Z, ZZ;
 	
-	assign {V, C, N, Z} = status;
+	assign {V, C, N, Z, ZZ} = status;
 	assign DA = 5'b0;
 	assign SA = 5'b0;
 	assign SB = 5'b0;
@@ -270,6 +269,7 @@ module B_cond_decoder (I, status, control_word);
 	assign WM = 1'b0;
 	assign WR = 1'b0;
 	assign NS = 1'b0;
+	assign EN_B =1'b0;	
 	/*PS
 	PC + 4 			when condition is false
 	PC + 4 + in*4	when condition is true
@@ -291,12 +291,14 @@ module B_cond_decoder (I, status, control_word);
 	Mux8to1Nbit PC1mux (PCmux_out, I[3:1], Z, C, N, V, Zn_C, N_xnor_V, N_xnor_V_Zn, ~I[0]);
 	defparam PC1mux.N = 1; 
 	assign PS[1] = PCmux_out ^ I[0];
-	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU,PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA};
+	assign PS[0] = 1'b1;
+	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 	
 endmodule
 
-module BL_decoder (I, control_word);
+module BL_decoder (I, control_word, state);
 	input [31:0]I;
+	input state;
 	output [`CW_BITS-1:0] control_word;
 	
 	wire [4:0] DA, SA, SB;    
@@ -313,13 +315,16 @@ module BL_decoder (I, control_word);
 	assign SL = 1'b0;
 	assign EN_ALU = 1'b0;
 	assign EN_RAM = 1'b0;
-	assign EN_PC = 1'b1;
+	assign EN_PC = ~state;
 	assign WM = 1'b0;
-	assign WR = 1'b1;
+	assign WR = state;
 	assign Bsel = 1'b0;
-	assign NS = 1'b0;
-	assign PS = 2'b11;
+	assign NS = ~state;
+	assign PS = {state, state};
 	assign FS = 5'b0;
+	assign EN_B = 1'b0;
+	
+	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 
 
 endmodule
@@ -330,27 +335,29 @@ module CBZ_decoder (I, status, control_word);
 	output [`CW_BITS-1:0] control_word;
 	
 	wire [4:0] DA, SA, SB;    
-    wire [63:0] K;
-    wire [1:0] PS;
-    wire [4:0] FS;
-    wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
+   wire [63:0] K;
+   wire [1:0] PS;
+   wire [4:0] FS;
+   wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
+	wire V, C, N, Z, ZZ;
 	
-	assign {V, C, N, Z} = status;
-	assign DA = I[4:0];
-	assign SA = 5'b0;
-	assign SB = 5'b0;
+	assign {V, C, N, Z, ZZ} = status;
+	assign DA = 5'b0;
+	assign SA = I[4:0];
+	assign SB = I[4:0];
 	assign K = {45{I[23],I[23:5]}};
-	assign PS = 2'b11;
-	assign FS = 5'b0;
+	assign PS = ZZ? {~I[24], 1'b1} : {I[24], 1'b1};
+	assign FS = 5'b00100;
 	assign PCsel = 1'b1; //Don't know what Kin does.
-	assign Bsel = 1'b1;//Maybe not depending on PCsel
-	assign SL = 1'b0;
-	assign EN_ALU = 1'b00;
+	assign Bsel = 1'b0;
+	assign SL = 1'b1; //Possibly doesn't matter since we are using ZZ which is routed around the register N bit 4/19/2018
+	assign EN_ALU = 1'b0;
 	assign EN_RAM = 1'b0;
-	assign EN_PC = 1'b1;
+	assign EN_PC = 1'b0;
 	assign WM = 1'b0;
 	assign WR = 1'b0;
 	assign NS = 1'b0;
+	assign EN_B = 1'b0;
 	
 endmodule
 
@@ -365,20 +372,21 @@ module BR_decoder (I, control_word);
 	wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
 	
 	assign DA = 5'b0;
-	assign SA = 5'b0;
+	assign SA = I[4:0];
 	assign SB = 5'b0;
-	assign PCsel = 1'b0;
+	assign PCsel = 1'b1;
 	assign K = 64'b0;
-	assign SL = 1'b0;
-	assign EN_ALU = 1'b1;
+	assign SL = 1'b0	;
+	assign EN_ALU = 1'b0;
 	assign EN_RAM = 1'b0;
-	assign EN_PC = 1'b1;
+	assign EN_PC = 1'b0;
 	assign WM = 1'b0;
-	assign WR = 1'b1;
+	assign WR = 1'b0;
 	assign Bsel = 1'b0;
 	assign NS = 1'b0;
-	assign PS = 2'b10;	//PC should get Rn
+	assign PS = 2'b10;	
 	assign FS = 5'b0;
+	assign EN_B = 1'b0;
 	
 endmodule
 
