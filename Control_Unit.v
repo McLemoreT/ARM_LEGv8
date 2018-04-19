@@ -325,7 +325,7 @@ module BL_decoder (I, control_word, state);
 	assign EN_B = 1'b0;
 	
 	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
-
+	
 
 endmodule
 
@@ -359,6 +359,9 @@ module CBZ_decoder (I, status, control_word);
 	assign NS = 1'b0;
 	assign EN_B = 1'b0;
 	
+	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	
+	
 endmodule
 
 module BR_decoder (I, control_word);
@@ -387,6 +390,9 @@ module BR_decoder (I, control_word);
 	assign PS = 2'b10;	
 	assign FS = 5'b0;
 	assign EN_B = 1'b0;
+	
+	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	
 	
 endmodule
 
