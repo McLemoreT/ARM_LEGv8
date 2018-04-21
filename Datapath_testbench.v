@@ -3,7 +3,7 @@ module Datapath_testbench ();
 wire [63:0] R5, R2, R0, R30, R15, R12, R1, R28, R22;
 wire [63:0] data;
 reg [63:0] constant;
-wire [93:0] ControlWord; // changed to reg, changed to wire 4/18
+wire [93:0] ControlWord; 
 reg clock, reset;
 
 wire [63:0] M16, M8;
@@ -29,8 +29,8 @@ wire PCsel;
 
 	initial begin
 		
-		reset <= 1; // had as 1, changed to 0
-		clock <= 0; // had as 0, changed to 1
+		reset <= 1; 
+		clock <= 0; 
 		//#165 $stop; //then stop
 	end
 	
@@ -43,7 +43,7 @@ wire PCsel;
 	
 	end
 		
-	DatapathLEGv8 dut (clock, reset);	// added status 5:27
+	DatapathLEGv8 dut (clock, reset);	
 	//viewing the necessary register locations in Modelsim
 	assign R0 = dut.regfile.R00;	
 	assign R1 = dut.regfile.R01;
