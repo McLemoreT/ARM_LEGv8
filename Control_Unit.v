@@ -19,6 +19,7 @@ module control_unit_setup(instruction, status, reset, clock, control_word, K);
 	
 	// state logic
 	wire NS;
+	assign NS = control_word[95];
 	reg state;
 	always @(posedge clock or posedge reset) begin
 		if(reset)
@@ -51,6 +52,7 @@ module control_unit_setup(instruction, status, reset, clock, control_word, K);
 	Mux8to1Nbit other_mux (other_cw, opcode[4:2], 
 		D_format_cw, 0, I_arithmetic_cw, 0, I_logic_cw, IW_cw, R_ALU_cw, 0);
 	defparam branch_mux.N = `CW_BITS+1;
+	assign K = control_word[94:31];
 	
 endmodule
 
