@@ -54,10 +54,10 @@ always begin
 #5 clock <= ~clock;
 
 end
-
-  //control_unit_setup  dut (instruction, status, reset, clock, control_word, K);
  
-D_decoder dut2 (instruction, control_word);
+  control_unit_setup  dut (instruction, status, reset, clock, control_word, K);
+ //Simulation of Single Decoder to verify functionality
+//D_decoder dut2 (instruction, control_word);
 
 endmodule
 
