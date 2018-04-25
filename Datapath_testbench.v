@@ -1,6 +1,7 @@
+
 module Datapath_testbench (); 
 			
-wire [63:0] R5, R2, R0, R30, R15, R12, R1, R28, R22;
+wire [63:0] R5, R2, R0, R30, R15, R12, R1, R28, R22, R7, R9, R23;
 wire [63:0] data;
 reg [63:0] constant;
 wire [93:0] ControlWord; 
@@ -25,20 +26,21 @@ wire EN_PC;
 wire SL, WM, WR;
 wire EN_B;
 wire PCsel;
+wire [63:0]M1;
 
 
 	initial begin
 		
 		reset <= 1; 
 		clock <= 0; 
-		//#165 $stop; //then stop
+		#5000 $stop; //then stop
 	end
 	
 	
 //Control word is defined as: {SA, SB, DA, RegWrite, MemWrite, FS, Bsel, EN_Mem, EN_ALU} = ControlWord;
 	always begin
 		#5 reset <=0;
-		#5 clock <= ~clock;
+		#100 clock <= ~clock;
 		
 	
 	end
@@ -46,14 +48,23 @@ wire PCsel;
 	DatapathLEGv8 dut (clock, reset);	
 	//viewing the necessary register locations in Modelsim
 	assign R0 = dut.regfile.R00;	
+	
 	assign R1 = dut.regfile.R01;
 	assign R2 = dut.regfile.R02;	
-	assign R3 = dut.regfile.R03;
+	assign M1 = dut.data_mem.mem[1];
+	assign R12 = dut.regfile.R12;
+	assign R7 = dut.regfile.R07;		
+	assign R9 = dut.regfile.R09;	
+	assign R23 = dut.regfile.R23;	
+	
+	assign PC4 = dut.PC4;
+	
+/*	assign R3 = dut.regfile.R03;
 	assign R4 = dut.regfile.R04;
 	assign R5 = dut.regfile.R05;
 	assign R6 = dut.regfile.R06;
-	assign R7 = dut.regfile.R07;
-	assign R12 = dut.regfile.R12;
+
+
 	assign R15 = dut.regfile.R15;
 	assign R22 = dut.regfile.R22;
 	assign R28 = dut.regfile.R28;
@@ -81,15 +92,17 @@ wire PCsel;
 	assign SL = dut.SL;
 	assign WM = dut.WM;
 	assign WR = dut.WR;
-	assign PC4 = dut.PC4;
+
 	//assign constant = dut.constant;
 	assign address = dut.address;
 	assign EN_B = dut.EN_B;
+	assign CU_controlWord = dut.c1.control_word;
 
 
 	//viewing the necessary memory locations in Modelsim
 	assign M8 = dut.data_mem.mem[8];
 	assign M16 = dut.data_mem.mem[16];
+*/
+	
 
 endmodule
-
