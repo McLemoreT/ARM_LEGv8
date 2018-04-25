@@ -1,11 +1,11 @@
-`define CW_BITS 96
+//`define CW_BITS 96
 
 module control_unit_setup(instruction, status, reset, clock, control_word, K);
 	input [31:0] instruction;
 							  // registerd   , instant
 	input [4:0] status; // {V, C, N, Z}, Z
 	input reset, clock;
-	output [`CW_BITS-1:0] control_word;
+	output [96:0] control_word;
 	output [63:0] K;
 	
 	wire V, C, N, Z, ZZ;
@@ -13,9 +13,9 @@ module control_unit_setup(instruction, status, reset, clock, control_word, K);
 	assign opcode = instruction[31:21];
 	
 	// partial control words
-	wire [`CW_BITS:0] branch_cw, other_cw;
-	wire [`CW_BITS:0] D_format_cw, I_arithmetic_cw, I_logic_cw, IW_cw, R_ALU_cw;
-	wire [`CW_BITS:0] B_cw, B_cond_cw, BL_cw, CBZ_cw, BR_cw;
+	wire [96:0] branch_cw, other_cw;
+	wire [96:0] D_format_cw, I_arithmetic_cw, I_logic_cw, IW_cw, R_ALU_cw;
+	wire [96:0] B_cw, B_cond_cw, BL_cw, CBZ_cw, BR_cw;
 	
 	// state logic
 	wire NS;
@@ -37,28 +37,35 @@ module control_unit_setup(instruction, status, reset, clock, control_word, K);
 	B_decoder dec1_000 (instruction, B_cw);
 	B_cond_decoder dec1_010 (instruction, status[4:1], B_cond_cw);
 	BL_decoder dec1_100 (instruction, BL_cw, state);
-	CBZ_decoder dec1_101 (instruction, status, CBZ_cw);
+	CBZ_decoder dec1_101 (instruction, status[0], CBZ_cw);
 	BR_decoder dec1_110 (instruction, BR_cw);
 	
 	// 2:1 mux to select between branch instructions and all others
 	assign control_word = opcode[5] ? branch_cw : other_cw;
 	
 	// 8:1 mux to select between branch insturctions
-	Mux8to1Nbit branch_mux (branch_cw, opcode[10:8], 
+	Mux8to1Nbit2 branch_mux (branch_cw, opcode[10:8], 
 		B_cw, 0, B_cond_cw, 0, BL_cw, CBZ_cw, BR_cw, 0);
-	defparam other_mux.N = `CW_BITS+1;
+	defparam branch_mux.N = 97;
 	
 	// 8:1 mux to select between all other insturctions
-	Mux8to1Nbit other_mux (other_cw, opcode[4:2], 
+	Mux8to1Nbit2 other_mux (other_cw, opcode[4:2], 
 		D_format_cw, 0, I_arithmetic_cw, 0, I_logic_cw, IW_cw, R_ALU_cw, 0);
-	defparam branch_mux.N = `CW_BITS+1;
+	defparam other_mux.N = 97;
 	assign K = control_word[94:31];
 	
 endmodule
 
 module D_decoder (I, control_word);
 	input [31:0]I;
-	output [`CW_BITS-1:0] control_word;
+	output [96:0] control_word;
+	
+		// wire for all control signals
+	wire [4:0] DA, SA, SB;
+	wire [63:0] K;
+	wire [1:0] PS;
+	wire [4:0] FS;
+	wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
 	
 //	assign {V, C, N, Z} = status;
 	assign DA = I[4:0];
@@ -78,12 +85,19 @@ module D_decoder (I, control_word);
 	assign NS = 1'b0;
 	assign PS = 2'b01;
 
-	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 endmodule
 
 module I_arithmetic_decoder (I, control_word);
 	input [31:0]I;
-	output [`CW_BITS-1:0] control_word;
+	output [96:0] control_word;
+	
+		// wire for all control signals
+	wire [4:0] DA, SA, SB;
+	wire [63:0] K;
+	wire [1:0] PS;
+	wire [4:0] FS;
+	wire PCsel, Bsel, SL, EN_ALU, EN_RAM, EN_PC, WM, WR, NS;
 	
 	assign DA = I[4:0];
 	assign SA = I[9:5];
@@ -102,13 +116,13 @@ module I_arithmetic_decoder (I, control_word);
 	assign NS = 1'b0;
 	assign PS = 2'b01;
 
-	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 
 endmodule
 
 module I_logic_decoder (I, control_word); //Minor problems
 	input [31:0]I; 
-	output [`CW_BITS-1:0] control_word;
+	output [96:0] control_word;
 	
 	wire [4:0] DA, SA, SB;    
     wire [63:0] K;
@@ -134,13 +148,13 @@ module I_logic_decoder (I, control_word); //Minor problems
 	assign EN_B = 1'b0;
 	assign PS = 2'b01;
 	
-	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 endmodule
 
 module IW_decoder (I, state, control_word);
 	input [31:0]I;
 	input state;
-	output [`CW_BITS:0] control_word;
+	output [96:0] control_word;
 	
 	// wire for all control signals
 	wire [4:0] DA, SA, SB;
@@ -172,12 +186,12 @@ module IW_decoder (I, state, control_word);
 	assign NS = I29_Snot;
 	
 	
-	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 endmodule
 
 module R_ALU_decoder (I, control_word);
 	input [31:0]I;
-	output [`CW_BITS:0] control_word;
+	output [96:0] control_word;
 	
 	// wire for all control signals
 	wire [4:0] DA, SA, SB;
@@ -209,12 +223,12 @@ module R_ALU_decoder (I, control_word);
 	assign EN_B = 1'b0;
 	assign PS = 2'b01;
 	
-	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 endmodule
 
 module B_decoder (I, control_word);
 	input [31:0]I;
-	output [`CW_BITS-1:0] control_word;
+	output [96:0] control_word;
 
 	wire [4:0] DA, SA, SB;
    wire [63:0] K;
@@ -241,13 +255,13 @@ module B_decoder (I, control_word);
 	assign NS = 1'b0;
 	assign K = {38'b0, I[25:0]};
 	
-	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 endmodule
 
 module B_cond_decoder (I, status, control_word);
 	input [31:0]I;
 	input [4:0]status;
-	output [`CW_BITS:0] control_word;
+	output [96:0] control_word;
 		//wire all control signals 03/28/2018
 	wire[4:0] DA, SA, SB;
 	wire[63:0] K;
@@ -260,7 +274,7 @@ module B_cond_decoder (I, status, control_word);
 	assign DA = 5'b0;
 	assign SA = 5'b0;
 	assign SB = 5'b0;
-	assign K = {45{I[23],I[23:5]}};
+	assign K = {{45{I[23]}},I[23:5]};
 	assign FS = 5'b0;
 	assign PCsel = 1'b1; //Kin
 	assign Bsel = 1'b0;
@@ -286,22 +300,22 @@ module B_cond_decoder (I, status, control_word);
 	*/
 	
 	wire PCmux_out;
-	wire Zn_C, N_xor_V, N_xor_V_Zn;
+	wire Zn_C, N_xnor_V, N_xnor_V_Zn;
 	assign Zn_C = ~Z & C;
 	assign N_xnor_V = ~(N^V);
-	assign N_xnor_V_Zn = N_xor_V & ~Z;
+	assign N_xnor_V_Zn = N_xnor_V & ~Z;
 	Mux8to1Nbit PC1mux (PCmux_out, I[3:1], Z, C, N, V, Zn_C, N_xnor_V, N_xnor_V_Zn, ~I[0]);
 	defparam PC1mux.N = 1; 
 	assign PS[1] = PCmux_out ^ I[0];
 	assign PS[0] = 1'b1;
-	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 	
 endmodule
 
 module BL_decoder (I, control_word, state);
 	input [31:0]I;
 	input state;
-	output [`CW_BITS-1:0] control_word;
+	output [96:0] control_word;
 	
 	wire [4:0] DA, SA, SB;    
 	wire [63:0] K;
@@ -313,7 +327,7 @@ module BL_decoder (I, control_word, state);
 	assign SA = 5'b0;
 	assign SB = 5'b0;
 	assign PCsel = 1'b1;
-	assign K = {38{I[25], I[25:0]}};
+	assign K = {{38{I[25]}}, I[25:0]};
 	assign SL = 1'b0;
 	assign EN_ALU = 1'b0;
 	assign EN_RAM = 1'b0;
@@ -326,7 +340,7 @@ module BL_decoder (I, control_word, state);
 	assign FS = 5'b0;
 	assign EN_B = 1'b0;
 	
-	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 	
 
 endmodule
@@ -334,7 +348,7 @@ endmodule
 module CBZ_decoder (I, status, control_word);
 	input [31:0]I;
 	input [4:0]status; //only need status[0] 4/12/2018
-	output [`CW_BITS-1:0] control_word;
+	output [96:0] control_word;
 	
 	wire [4:0] DA, SA, SB;    
    wire [63:0] K;
@@ -347,7 +361,7 @@ module CBZ_decoder (I, status, control_word);
 	assign DA = 5'b0;
 	assign SA = I[4:0];
 	assign SB = I[4:0];
-	assign K = {45{I[23],I[23:5]}};
+	assign K = {{45{I[23]}},I[23:5]};
 	assign PS = ZZ? {~I[24], 1'b1} : {I[24], 1'b1};
 	assign FS = 5'b00100;
 	assign PCsel = 1'b1; //Don't know what Kin does.
@@ -361,14 +375,14 @@ module CBZ_decoder (I, status, control_word);
 	assign NS = 1'b0;
 	assign EN_B = 1'b0;
 	
-	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 	
 	
 endmodule
 
 module BR_decoder (I, control_word);
 	input [31:0]I;
-	output [`CW_BITS-1:0] control_word;
+	output [96:0] control_word;
 	
 	wire [4:0] DA, SA, SB;    
 	wire [63:0] K;
@@ -393,9 +407,23 @@ module BR_decoder (I, control_word);
 	assign FS = 5'b0;
 	assign EN_B = 1'b0;
 	
-	assign control_word = {K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
+	assign control_word = {NS, K, EN_PC, EN_RAM, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B};
 	
 	
 endmodule
 
+
+module Mux8to1Nbit2(F, S, I0, I1, I2, I3, I4, I5, I6, I7);
+			parameter N = 97;
+			
+			input [96:0] I0, I1, I2, I3, I4, I5, I6, I7;
+			input [2:0]S; 
+			output [96:0]F;
+			
+			
+			assign F = S[2] ? (S[1] ? (S[0] ? I7:I6): (S[0] ? I5:I4)) : (S[1] ? (S[0] ? I3:I2): (S[0] ? I1:I0));
+			
+			
+		endmodule
+			
 
