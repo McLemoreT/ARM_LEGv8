@@ -1,5 +1,6 @@
-module RegFile32x64(A, B, D, DA, SA, SB, W, reset, clock);
+module RegFile32x64(A, B, D, DA, SA, SB, W, reset, clock, r0, r1, r2, r3, r4, r5, r6, r7);
 	output [63:0]A, B; // output buses
+	output [15:0] r0, r1, r2, r3, r4, r5, r6, r7;
 	input [63:0]D; // data input
 	input [4:0]DA; // destination data address
 	input [4:0]SA; // select address for A bus
@@ -13,6 +14,11 @@ module RegFile32x64(A, B, D, DA, SA, SB, W, reset, clock);
 					R20, R21, R22, R23, R24, R25, R26, R27, R28, R29,
 					R30, R31; 
 					
+/*	assign r6 = R20[63:48];
+	assign r5 = R20[47:32];
+	assign r4 = R20[31:16];
+	assign r3 = R20[15:0];*/
+	
 	wire [31:0]L, m; // load wires and minterm wires
 	
 	RegisterNbit reg0 (R00, D, L[0], reset, clock);
@@ -64,6 +70,15 @@ module RegFile32x64(A, B, D, DA, SA, SB, W, reset, clock);
 										
 	defparam A_mux.N = 64;
 	defparam B_mux.N = 64;
+	
+	assign r0 = R00;
+	assign r1 = R01;		
+	assign r2 = R02;
+	assign r3 = R03;
+	assign r4 = R04;
+	assign r5 = R05;
+	assign r6 = R06;
+	assign r7 = R07;
 endmodule
 
 
