@@ -9,8 +9,8 @@ module LEGv8_DE0(CLOCK_50, SW, LEDG, BUTTON, GPIO1_D, GPIO0_D, HEX0, HEX1, HEX2,
 //	input [31:0] DIP_SW;
 
 
-	clock_div clock4Hz (CLOCK_50, clock);	//my 4Hz clock divider
-	
+//clock_div clock4Hz (CLOCK_50, clock);
+//	clock_div2 clock25MHz (CLOCK_50, clock);
 	wire clock, reset;
 	tri [63:0] data;
 	tri [63:0] portA;
@@ -19,7 +19,7 @@ module LEGv8_DE0(CLOCK_50, SW, LEDG, BUTTON, GPIO1_D, GPIO0_D, HEX0, HEX1, HEX2,
 	reg [9:0]counter;
 //	assign clock = ~BUTTON[2];
 //	wire clock45;
-//	pll pll_inst(CLOCK_50, clock45);
+	pll pll_inst(CLOCK_50, clock);
 //	assign clock = clock45; //counter[0];
 	assign reset = ~BUTTON[0];
 	assign write = BUTTON[1];	//write when button not pressed
@@ -96,4 +96,6 @@ module clock_div(clock_in, clock_out);
 	end
 
 endmodule	
+
+
 
