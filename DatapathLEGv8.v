@@ -9,7 +9,7 @@ module DatapathLEGv8(ControlWord, constant, status, instruction, data, address, 
 	output [63:0]address;
 	output [15:0] PC;
 	output [15:0] r0, r1, r2, r3, r4, r5, r6, r7;
-	inout en_write, en_read;	//was output
+	inout en_write, en_read;	
 	input instruction_sel;
 	input [31:0] instruction_user;
 //	input [4:0]read_address;
@@ -39,34 +39,13 @@ module DatapathLEGv8(ControlWord, constant, status, instruction, data, address, 
 	wire [1:0] PS_user;
 
 
-//always @(posedge clock or posedge reset) begin
-//	if(en_write) begin
-		assign {NS, constant, EN_PC, EN_Mem, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B} = ControlWord; //we have the control word, pull all these things off of it in the correct order
-/*	end
-	else if (en_read) begin
-		assign NS = 1'b0;
-		assign constant = 64'b0;
-		assign EN_PC = 1'b0;
-		assign EN_Mem = ~read_address;
-		assign EN_ALU = 1'b0;
-		assign PCsel = 1'b0;
-		assign Bsel = 5'b0;
-		assign SL = 1'b0;
-		assign WM = 1'b0;
-		assign WR = 1'b0;
-		assign PS = 2'b0;
-		assign FS = 5'b0;
-		assign SB = read_address[4:0];
-		assign DA = 5'd31;
-		assign EN_B = reg_or_mem;
-	end
-end*/
-		
+	assign {NS, constant, EN_PC, EN_Mem, EN_ALU, PCsel, Bsel, SL, WM, WR, PS, FS, SB, SA, DA, EN_B} = ControlWord; //we have the control word, pull all these things off of it in the correct order
+
 													    //Removed NS so CW went from 94 bits to 93
 	assign RegAbus = PCsel ? constant : A;
 	assign RegBbus = Bsel ? constant : B;
 														 
-	RegFile32x64 regfile(A, B, data, DA, SA, SB, WR, reset, clock);
+	RegFile32x64 regfile(A, B, data, DA, SA, SB, WR, reset, clock, r0, r1, r2, r3, r4, r5, r6, r7);
 
 	ALU_LEGv8 alu (A, RegBbus, FS, FS[1], ALU_output, ALU_Status);
 
@@ -94,6 +73,7 @@ end*/
 	assign PS_user[0] = ~instruction_sel & PS[0];	//when getting instruction from user, pause PC
 	assign PS_user[1] = ~instruction_sel & PS[1];	//"" ""
 	
+	assign PC = PC4[15:0];
 	
 	ProgramCounter pc (address, PC4, RegAbus, PS_user, clock, reset);
 //	ProgramCounter pc_user (address_user, PC4_user, RegAbus, PS_user, clock, reset)
@@ -107,11 +87,11 @@ end*/
 	
 	assign instruction[31:0] = instruction_sel ? instruction_user[31:0] : instruction_rom[31:0];
 	
-	assign r6 = data[63:48];
+/*	assign r6 = data[63:48];
 	assign r5 = data[47:32];
 	assign r4 = data[31:16];
 	assign r3 = data[15:0];
-    
+    */
 	control_unit_setup c1 (instruction, status, reset, clock, ControlWord, constant2);
 	
 //	GPIO_Peripheral gpio (clock, reset, pins, data, address, read, write);
