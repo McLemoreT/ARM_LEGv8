@@ -1,4 +1,4 @@
-module CLA_testbench (); //written 2/4/18
+module ALU_testbench (); //written 2/4/18
 		//ALU input/outputs: A, B, FS, CO, F, status
 	
 	reg [63:0] A, B; //2 main inputs for ALU
